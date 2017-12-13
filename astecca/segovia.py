@@ -116,7 +116,7 @@ def algorithm(problem):
         sorted_shapes.append((shape, shape.total_cost))
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
-    for i in range(2):
+    for i in range(1):
         for shape, d in sorted_shapes:
             (isInserted, updatable_room, updated_shape) = insertRandomShape(updatable_room, shape.polygon)
             if isInserted:
@@ -128,7 +128,7 @@ def algorithm(problem):
 
     print("First a stecca finished")
 
-    for i in range(500):
+    for i in range(200):
         for shape, d in sorted_shapes:
             x, y = shape.polygon.exterior.xy
             points = random_points_within(updatable_room, 1)[0]
@@ -157,7 +157,7 @@ def get_cost(solution_shapes):
         total_cost = total_cost + shape.total_cost
     return total_cost
 
-i = 9
+i = 15
 (solution, solution_shapes) = algorithm(problems[i-1])
 print("Problem" + str(i))
 print(get_output(solution))
