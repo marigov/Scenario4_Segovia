@@ -95,6 +95,15 @@ def insertRandomShape(room, shape):
                 continue
     return (False, room, shape)
 
+def random_points_within(poly, num_points):
+    min_x, min_y, max_x, max_y = poly.bounds
+    points = []
+    while len(points) < num_points:
+        random_point = Point([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
+        if (random_point.within(poly)):
+            points.append(random_point)
+    return points
+
 def algorithm(problem):
     updatable_room = problem.room.polygon
     shapes = problem.furniture
@@ -107,7 +116,7 @@ def algorithm(problem):
         sorted_shapes.append((shape, shape.total_cost))
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
-    for i in range(3):
+    for i in range(2):
         for shape, d in sorted_shapes:
             (isInserted, updatable_room, updated_shape) = insertRandomShape(updatable_room, shape.polygon)
             if isInserted:
@@ -116,6 +125,22 @@ def algorithm(problem):
                 solution.append(list(zip(*(x,y))))
                 print(1 - updatable_room.area / problem.room.polygon.area)
                 sorted_shapes.remove((shape, d))
+
+    print("First a stecca finished")
+
+    for i in range(500):
+        for shape, d in sorted_shapes:
+            x, y = shape.polygon.exterior.xy
+            points = random_points_within(updatable_room, 1)[0]
+            polygon = affinity.translate(shape.polygon, points.x, points.y)
+            polygon = affinity.rotate(polygon, random.uniform(0, 180), origin="centroid")
+            if updatable_room.contains(polygon):
+                updatable_room = updatable_room.difference(polygon)
+                x, y = polygon.exterior.xy
+                solution_shapes.append(shape)
+                solution.append(list(zip(*(x, y))))
+                sorted_shapes.remove((shape, d))
+                print(1 - updatable_room.area / problem.room.polygon.area)
 
     print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
     return (solution, solution_shapes)
@@ -132,7 +157,7 @@ def get_cost(solution_shapes):
         total_cost = total_cost + shape.total_cost
     return total_cost
 
-i = 8
+i = 9
 (solution, solution_shapes) = algorithm(problems[i-1])
 print("Problem" + str(i))
 print(get_output(solution))
