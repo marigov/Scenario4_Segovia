@@ -104,18 +104,20 @@ def algorithm(problem):
 
     sorted_shapes = []
     for shape in shapes:
-        sorted_shapes.append((shape, shape.polygon.area))
+        sorted_shapes.append((shape, shape.total_cost))
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
-    while (updatable_room.area / problem.room.polygon.area) >= 0.3:
+    for i in range(3):
         for shape, d in sorted_shapes:
             (isInserted, updatable_room, updated_shape) = insertRandomShape(updatable_room, shape.polygon)
             if isInserted:
                 x, y = updated_shape.exterior.xy
                 solution_shapes.append(shape)
                 solution.append(list(zip(*(x,y))))
-                print(updatable_room.area / problem.room.polygon.area)
+                print(1 - updatable_room.area / problem.room.polygon.area)
                 sorted_shapes.remove((shape, d))
+
+    print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
     return (solution, solution_shapes)
 
 def get_output(solution):
@@ -130,14 +132,13 @@ def get_cost(solution_shapes):
         total_cost = total_cost + shape.total_cost
     return total_cost
 
-(solution, solution_shapes) = algorithm(problems[1])
+i = 8
+(solution, solution_shapes) = algorithm(problems[i-1])
+print("Problem" + str(i))
 print(get_output(solution))
-print("Cost: ", get_cost(solution_shapes))
+print(get_cost(solution_shapes))
 
-#room = algorithm(problems[2])
-#x, y = room.exterior.xy
-#plt.plot(x, y, color='#e50000', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
-#plt.show()
+
 
 # def plot(poly):
 #     x,y = poly.exterior.xy
