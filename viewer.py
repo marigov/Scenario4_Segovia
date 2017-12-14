@@ -54,18 +54,17 @@ def draw_room(room):
     #ax.plot(x, y)
 
 
-def draw_furniture(item, intensity, unit_cost):
+def draw_furniture(item, intensity, unit_cost, color):
     x, y = item.exterior.xy
     (minx, miny, maxx, maxy) = item.bounds
     #ax.fill(x, y, '#1abc9c', alpha=intensity)
     #ax.text(maxx, maxy, str(unit_cost) , fontsize=8, color='black')
-    plt.fill(x, y, '#1abc9c', alpha=intensity)
+    plt.fill(x, y, color, alpha=intensity)
     plt.text(maxx, maxy, str(unit_cost) , fontsize=8, color='black')
 
     #ax.plot(x, y)
 
-def draw_scattered(room, furniture_list):
-    draw_room(room)
+def draw_remaining_furniture(room, furniture_list, color):
     plotted_items = []
     plotted_items.append(room)
     total_area = 0
@@ -90,7 +89,7 @@ def draw_scattered(room, furniture_list):
             rand_point = Point([random.uniform(-margin, margin), random.uniform(-margin, margin)])
             shape_to_plot = affinity.translate(item_poly, rand_point.x, rand_point.y)
 
-        draw_furniture(shape_to_plot, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2,item.unit_cost)
+        draw_furniture(shape_to_plot, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2,item.unit_cost, color)
         plotted_items.append(shape_to_plot)
         plotted_shape = cascaded_union(plotted_items)
 
@@ -100,6 +99,6 @@ ax = fig.add_subplot(111)
 ax.set_aspect(1)
 '''
 
-draw_scattered(problems[2].room.polygon, problems[2].furniture)
-plt.axis('equal')
-plt.show()
+#draw_scattered(problems[2].room.polygon, problems[2].furniture, color)
+#plt.axis('equal')
+#plt.show()
