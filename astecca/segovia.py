@@ -82,32 +82,45 @@ def insertRandomShape(room, shape):
                 new_updatable_room = room_to_check
 
             if new_updatable_room.area > 0.00000000000000000000001:
-                # plt.plot(updatedRoom, updatedRoomY, color='#6699cc', alpha=0.7, linewidth=3, solid_capstyle='round',
-                #          zorder=2)
-                # plt.plot(x, y, color='#e50000', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
-                # display.display(plt.gcf())
-                # display.display(plt.clf())
-                # display.clear_output(wait=True)
-                # time.sleep(0.0001)
-                # plt.show()
                 return (True, new_updatable_room, new_rotated_shape)
             else:
                 continue
     return (False, room, shape)
 
-def random_points_within(poly, num_points):
-    min_x, min_y, max_x, max_y = poly.bounds
-    points = []
-    while len(points) < num_points:
-        random_point = Point([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
-        if (random_point.within(poly)):
-            points.append(random_point)
-    return points
+
+def insertShape(room, shape, x, y):
+    shape_coordinates = list(zip(*shape.exterior.xy))
+
+    room_coordinate_x = x
+    room_coordinate_y = y
+
+    def f(angle):
+        return affinity.rotate(shape, angle, origin=(room_coordinate_x, room_coordinate_y)).difference(room).area
+
+    for shape_coordinate_x, shape_coordinate_y in shape_coordinates:
+        new_translated_shape = affinity.translate(shape, room_coordinate_x - shape_coordinate_x, room_coordinate_y - shape_coordinate_y)
+        angle = np.float64(360) + optimize.minimize_scalar(f, bounds=(0,360), method='golden', options={'xtol': 1e-15}).x
+        new_rotated_shape = affinity.rotate(new_translated_shape, 0, origin=(room_coordinate_x, room_coordinate_y))
+
+        if (room.difference(new_rotated_shape).area == room.area - new_rotated_shape.area):
+            new_updatable_room = Polygon()
+            room_to_check = room.difference(new_rotated_shape)
+            if (room_to_check.geom_type == 'MultiPolygon'):
+                for poly in room_to_check:
+                    new_updatable_room.union(poly)
+            else:
+                new_updatable_room = room_to_check
+
+            if new_updatable_room.area > 0.00000000000000000000001:
+                return (True, new_updatable_room, new_rotated_shape)
+            else:
+                continue
+    return (False, room, shape)
 
 def algorithm(problem):
     updatable_room = problem.room.polygon
     shapes = problem.furniture
-
+    updatable_room = updatable_room.difference(Polygon([(-129.88579350461248, 184.11594348582952), (-1.1023128184359925, 20.779434699969865), (19.314750779796498, 36.877369785741934), (-109.46872990638, 200.21387857160158)]))
     solution = []
     solution_shapes = []
 
@@ -116,8 +129,21 @@ def algorithm(problem):
         sorted_shapes.append((shape, shape.total_cost))
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
+    '''
+    for shape, d in sorted_shapes:
+        for (x, y) in list(zip(*updatable_room.exterior.xy)):
+            (isInserted, updatable_room, updated_shape) = insertShape(updatable_room, shape.polygon, x, y)
+            if isInserted:
+                x, y = updated_shape.exterior.xy
+                solution_shapes.append(shape)
+                solution.append(list(zip(*(x, y))))
+                print(1 - updatable_room.area / problem.room.polygon.area)
+                sorted_shapes.remove((shape, d))
+                break
+    '''
     for i in range(1):
         for shape, d in sorted_shapes:
+            (tmpX, tmpY) = shape.polygon.exterior.xy
             (isInserted, updatable_room, updated_shape) = insertRandomShape(updatable_room, shape.polygon)
             if isInserted:
                 x, y = updated_shape.exterior.xy
@@ -127,13 +153,12 @@ def algorithm(problem):
                 sorted_shapes.remove((shape, d))
 
     print("First a stecca finished")
-
-    for i in range(200):
+    for i in range(20):
         for shape, d in sorted_shapes:
             x, y = shape.polygon.exterior.xy
             points = random_points_within(updatable_room, 1)[0]
             polygon = affinity.translate(shape.polygon, points.x, points.y)
-            polygon = affinity.rotate(polygon, random.uniform(0, 180), origin="centroid")
+            polygon = affinity.rotate(polygon, random.uniform(0, 0), origin="centroid")
             if updatable_room.contains(polygon):
                 updatable_room = updatable_room.difference(polygon)
                 x, y = polygon.exterior.xy
@@ -141,7 +166,6 @@ def algorithm(problem):
                 solution.append(list(zip(*(x, y))))
                 sorted_shapes.remove((shape, d))
                 print(1 - updatable_room.area / problem.room.polygon.area)
-
     print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
     return (solution, solution_shapes)
 
@@ -157,22 +181,10 @@ def get_cost(solution_shapes):
         total_cost = total_cost + shape.total_cost
     return total_cost
 
-i = 15
+i = 23
 (solution, solution_shapes) = algorithm(problems[i-1])
 print("Problem" + str(i))
 print(get_output(solution))
 print(get_cost(solution_shapes))
-
-
-
-# def plot(poly):
-#     x,y = poly.exterior.xy
-#     plt.plot(x, y, color='#6699cc', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
-#     plt.show()
-#
-# plot(Polygon([(6.0, 0.0), (10.0, 0.0), (10.0, 10.0), (6.0, 10.0) (0.0, 0.0), (6.0, 0.0), (0.0, 10.0)]))
-
-
-
 
 
