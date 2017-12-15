@@ -56,7 +56,7 @@ def draw_room(room):
 def draw_shape(shape):
     x, y = shape.exterior.xy
     #ax.fill(x, y, '#7f8c8d', alpha=1)
-    plt.fill(x, y, '#c0392b', alpha=1)
+    plt.fill(x, y, '#c0392b', alpha=0.5)
     #ax.plot(x, y)
 
 

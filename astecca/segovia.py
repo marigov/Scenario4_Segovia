@@ -106,49 +106,6 @@ def random_points_within(poly, num_points):
     return points
 
 
-def algorithm(problem):
-    room_polygon = problem.room.polygon
-    updatable_room = room_polygon
-    shapes = problem.furniture
-    solution_translated_shapes = []
-
-    solution = []
-    solution_shapes = []
-
-    sorted_shapes = []
-    for shape in shapes:
-        sorted_shapes.append((shape, shape.total_cost))
-
-    sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
-
-    for i in range(1):
-        for shape, d in sorted_shapes:
-            (isInserted, updatable_room, updated_shape) = insertRandomShape(updatable_room, shape.polygon)
-            if isInserted:
-                x, y = updated_shape.exterior.xy
-                solution_shapes.append(shape)
-                solution.append(list(zip(*(x,y))))
-                solution_translated_shapes.append(updated_shape)
-                print(1 - updatable_room.area / problem.room.polygon.area)
-                sorted_shapes.remove((shape, d))
-
-    for i in range(10):
-        for shape, d in sorted_shapes:
-            points = random_points_within(updatable_room, 1)[0]
-            polygon = affinity.translate(shape.polygon, points.x, points.y)
-            polygon = affinity.rotate(polygon, random.uniform(0, 180), origin="centroid")
-            if updatable_room.contains(polygon):
-                updatable_room = updatable_room.difference(polygon)
-                x, y = polygon.exterior.xy
-                solution_shapes.append(shape)
-                solution.append(list(zip(*(x, y))))
-                solution_translated_shapes.append(polygon)
-                sorted_shapes.remove((shape, d))
-                print(1 - updatable_room.area / problem.room.polygon.area)
-
-    print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
-    return (solution, solution_shapes, solution_translated_shapes)
-
 
 def get_sorted_shapes(furniture_list):
     sorted_shapes = []
@@ -196,10 +153,54 @@ def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
     angle_to_rotate = get_angle(shape_vector1, room_vector1)
     new_rotated_shape = affinity.rotate(new_shape, angle_to_rotate, origin=Point(trans_x, trans_y), use_radians=True)
 
+    if (room.difference(new_rotated_shape).area == room.area - new_rotated_shape.area):
+        new_updatable_room = Polygon()
+        room_to_check = room.difference(new_rotated_shape)
+        if (room_to_check.geom_type == 'MultiPolygon'):
+            for poly in room_to_check:
+                new_updatable_room.union(poly)
+        else:
+            new_updatable_room = room_to_check
+
+        if new_updatable_room.area > 0.00000000000000000000001:
+            return (True, new_updatable_room, new_rotated_shape)
+
     return (False, room, new_rotated_shape)
 
+def algorithm(problem):
+    room_polygon = problem.room.polygon
+    updatable_room = room_polygon
+    shapes = problem.furniture
+    solution_translated_shapes = []
 
-i = 21
+    solution = []
+    solution_shapes = []
+
+    sorted_shapes = []
+    for shape in shapes:
+        sorted_shapes.append((shape, shape.total_cost))
+
+    sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
+
+    for i in range(10):
+        for shape, d in sorted_shapes:
+            points = random_points_within(updatable_room, 1)[0]
+            polygon = affinity.translate(shape.polygon, points.x, points.y)
+            polygon = affinity.rotate(polygon, random.uniform(0, 180), origin="centroid")
+            if updatable_room.contains(polygon):
+                updatable_room = updatable_room.difference(polygon)
+                x, y = polygon.exterior.xy
+                solution_shapes.append(shape)
+                solution.append(list(zip(*(x, y))))
+                solution_translated_shapes.append(polygon)
+                sorted_shapes.remove((shape, d))
+                print(1 - updatable_room.area / problem.room.polygon.area)
+
+    print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
+    return (solution, solution_shapes, solution_translated_shapes)
+
+
+i = 10
 # (solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
 # print("Problem" + str(i))
 # print("Solution" + get_output(solution))
@@ -219,10 +220,10 @@ test_shape = get_sorted_shapes(problems[i-1].furniture)
 sorted_shapes = get_sorted_shapes(problems[i-1].furniture)
 print(len(sorted_shapes))
 print(len(problems[i-1].furniture))
-new_test_shape = autofit_shape(problems[i-1].room.polygon, sorted_shapes[30][0].polygon, 13, 0)
+new_test_shape = autofit_shape(problems[i-1].room.polygon, sorted_shapes[28][0].polygon, 103, 0)
 
 draw_room(problems[i-1].room.polygon)
-draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
+#draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
 
 draw_shape(new_test_shape[2])
 print(new_test_shape[2])
@@ -234,7 +235,6 @@ def get_specific_shape(shape):
     return output
 
 print(get_specific_shape(new_test_shape[2]))
-d
 #
 # for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
 #     draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
