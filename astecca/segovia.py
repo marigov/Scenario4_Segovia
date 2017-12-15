@@ -105,7 +105,11 @@ def random_points_within(poly, num_points):
             points.append(random_point)
     return points
 
-
+def get_specific_shape(shape):
+    output = ""
+    for x, y in list(zip(*(shape.exterior.xy)))[:-1]:
+        output = output +  "(" + str(x) + ", " + str(y) + ")" + ", "
+    return output
 
 def get_sorted_shapes(furniture_list):
     sorted_shapes = []
@@ -152,19 +156,7 @@ def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
     angle_to_rotate = get_angle(shape_vector1, room_vector1)
     new_rotated_shape = affinity.rotate(new_shape, angle_to_rotate, origin=Point(trans_x, trans_y), use_radians=True)
 
-    if (room.difference(new_rotated_shape).area == room.area - new_rotated_shape.area):
-        new_updatable_room = Polygon()
-        room_to_check = room.difference(new_rotated_shape)
-        if (room_to_check.geom_type == 'MultiPolygon'):
-            for poly in room_to_check:
-                new_updatable_room.union(poly)
-        else:
-            new_updatable_room = room_to_check
-
-        if new_updatable_room.area > 0.00000000000000000000001:
-            return (True, new_updatable_room, new_rotated_shape)
-
-    return (False, room, new_rotated_shape)
+    return new_rotated_shape
 
 def algorithm(problem):
     room_polygon = problem.room.polygon
@@ -181,7 +173,7 @@ def algorithm(problem):
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
 
-    for i in range(20):
+    for i in range(10):
         for shape, d in sorted_shapes:
             points = random_points_within(updatable_room, 1)[0]
             polygon = affinity.translate(shape.polygon, points.x, points.y)
@@ -200,6 +192,7 @@ def algorithm(problem):
 
 
 i = 30
+
 (solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
 print("Problem" + str(i))
 print("Solution" + get_output(solution))
@@ -208,38 +201,28 @@ print("Cost: " + str(get_cost(solution_shapes)))
 min_cost = 0
 max_cost = 0
 
-# for item in solution_shapes:
-#     if int(item.unit_cost) > max_cost:
-#         max_cost = int(item.unit_cost)
-#     if int(item.unit_cost) < min_cost:
-#         min_cost = int(item.unit_cost)
-#
+for item in solution_shapes:
+     if int(item.unit_cost) > max_cost:
+         max_cost = int(item.unit_cost)
+     if int(item.unit_cost) < min_cost:
+         min_cost = int(item.unit_cost)
+
 
 test_shape = get_sorted_shapes(problems[i-1].furniture)
 sorted_shapes = get_sorted_shapes(problems[i-1].furniture)
-print(len(sorted_shapes))
-print(len(problems[i-1].furniture))
-new_test_shape = autofit_shape(problems[i-1].room.polygon, sorted_shapes[28][0].polygon, 103, 0)
 
-#draw_room(problems[i-1].room.polygon)
-#draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
 
-#draw_shape(new_test_shape[2])
-#print(new_test_shape[2])
+draw_room(problems[i-1].room.polygon)
 
-def get_specific_shape(shape):
-    output = ""
-    for x, y in list(zip(*(shape.exterior.xy)))[:-1]:
-        output = output +  "(" + str(x) + ", " + str(y) + ")" + ", "
-    return output
+for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
+    draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
 
-print(get_specific_shape(new_test_shape[2]))
-#
-# for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
-#     draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
+remaining_furniture = list(set(problems[i-1].furniture)-set(solution_shapes))
 
-# remaining_furniture = list(set(problems[i-1].furniture)-set(solution_shapes))
-# print(len(remaining_furniture), len(problems[i-1].furniture ))
-# draw_remaining_furniture(problems[i-1].room.polygon, remaining_furniture, "#d35400")
+# Uncomment for just furniture
+# draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
+
+draw_remaining_furniture(problems[i-1].room.polygon, remaining_furniture, "#d35400")
+
 plt.axis('equal')
 plt.show()
