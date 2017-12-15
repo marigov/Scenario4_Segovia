@@ -133,7 +133,6 @@ def get_angle(a,b):
     return angle
 
 
-# TODO: vertice number insetead of coordinates
 def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
 
     room_vertice_index = room_vertice_index
@@ -169,7 +168,16 @@ def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
 
 def algorithm(problem):
     room_polygon = problem.room.polygon
-    updatable_room = room_polygon
+    updatable_room = room_polygon.difference(Polygon([(0.0, 0.0), (0.0, 7.0), (-7.0, 7.0), (-7.0, 0.0)]))
+    updatable_room = updatable_room.difference(Polygon([(-16.56217782649108, 16.56217782649106), (-22.62435565298215, 13.062177826491057), (-19.124355652982146, 6.999999999999989), (-13.06217782649108, 10.499999999999991)]))
+    updatable_room = updatable_room.difference(Polygon([(-26.124355652982132, 6.999999999999986), (-26.124355652982132, -1.4210854715202004e-14), (-19.124355652982132, -1.4210854715202004e-14), (-19.124355652982132, 6.999999999999986)]))
+    updatable_room = updatable_room.difference(Polygon([(-22.624355652982132, -6.062177826491073), (-16.56217782649106, -9.56217782649107), (-13.062177826491059, -3.4999999999999964), (-19.124355652982135, 0.0)]))
+    updatable_room = updatable_room.difference(Polygon([(-26.124355652982132, -19.124355652982125), (-26.124355652982132, -26.124355652982125), (-19.124355652982132, -26.124355652982125), (-19.124355652982132, -19.124355652982125)]))
+    updatable_room = updatable_room.difference(Polygon([(-22.624355652982135, -32.186533479473184), (-16.562177826491055, -35.68653347947318), (-13.062177826491066, -29.6243556529821), (-19.124355652982143, -26.12435565298211)]))
+    updatable_room = updatable_room.difference(Polygon([(-9.562177826491052, -35.68653347947319), (-3.499999999999986, -32.186533479473184), (-6.999999999999993, -26.124355652982118), (-13.062177826491059, -29.624355652982125)]))
+    updatable_room = updatable_room.difference(Polygon([(0.0, -26.124355652982125), (7.0, -26.124355652982125), (7.0, -19.124355652982125), (0.0, -19.124355652982125)]))
+
+
     shapes = problem.furniture
     solution_translated_shapes = []
 
@@ -200,11 +208,11 @@ def algorithm(problem):
     return (solution, solution_shapes, solution_translated_shapes)
 
 
-i = 10
-# (solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
-# print("Problem" + str(i))
-# print("Solution" + get_output(solution))
-# print("Cost: " + str(get_cost(solution_shapes)))
+i = 26
+(solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
+print("Problem" + str(i))
+print("Solution" + get_output(solution))
+print("Cost: " + str(get_cost(solution_shapes)))
 
 min_cost = 0
 max_cost = 0
@@ -222,11 +230,11 @@ print(len(sorted_shapes))
 print(len(problems[i-1].furniture))
 new_test_shape = autofit_shape(problems[i-1].room.polygon, sorted_shapes[28][0].polygon, 103, 0)
 
-draw_room(problems[i-1].room.polygon)
+#draw_room(problems[i-1].room.polygon)
 #draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
 
-draw_shape(new_test_shape[2])
-print(new_test_shape[2])
+#draw_shape(new_test_shape[2])
+#print(new_test_shape[2])
 
 def get_specific_shape(shape):
     output = ""
