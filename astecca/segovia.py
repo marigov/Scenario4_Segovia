@@ -168,16 +168,7 @@ def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
 
 def algorithm(problem):
     room_polygon = problem.room.polygon
-    updatable_room = room_polygon.difference(Polygon([(0.0, 0.0), (0.0, 7.0), (-7.0, 7.0), (-7.0, 0.0)]))
-    updatable_room = updatable_room.difference(Polygon([(-16.56217782649108, 16.56217782649106), (-22.62435565298215, 13.062177826491057), (-19.124355652982146, 6.999999999999989), (-13.06217782649108, 10.499999999999991)]))
-    updatable_room = updatable_room.difference(Polygon([(-26.124355652982132, 6.999999999999986), (-26.124355652982132, -1.4210854715202004e-14), (-19.124355652982132, -1.4210854715202004e-14), (-19.124355652982132, 6.999999999999986)]))
-    updatable_room = updatable_room.difference(Polygon([(-22.624355652982132, -6.062177826491073), (-16.56217782649106, -9.56217782649107), (-13.062177826491059, -3.4999999999999964), (-19.124355652982135, 0.0)]))
-    updatable_room = updatable_room.difference(Polygon([(-26.124355652982132, -19.124355652982125), (-26.124355652982132, -26.124355652982125), (-19.124355652982132, -26.124355652982125), (-19.124355652982132, -19.124355652982125)]))
-    updatable_room = updatable_room.difference(Polygon([(-22.624355652982135, -32.186533479473184), (-16.562177826491055, -35.68653347947318), (-13.062177826491066, -29.6243556529821), (-19.124355652982143, -26.12435565298211)]))
-    updatable_room = updatable_room.difference(Polygon([(-9.562177826491052, -35.68653347947319), (-3.499999999999986, -32.186533479473184), (-6.999999999999993, -26.124355652982118), (-13.062177826491059, -29.624355652982125)]))
-    updatable_room = updatable_room.difference(Polygon([(0.0, -26.124355652982125), (7.0, -26.124355652982125), (7.0, -19.124355652982125), (0.0, -19.124355652982125)]))
-
-
+    updatable_room = room_polygon
     shapes = problem.furniture
     solution_translated_shapes = []
 
@@ -190,7 +181,7 @@ def algorithm(problem):
 
     sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
 
-    for i in range(10):
+    for i in range(20):
         for shape, d in sorted_shapes:
             points = random_points_within(updatable_room, 1)[0]
             polygon = affinity.translate(shape.polygon, points.x, points.y)
@@ -208,7 +199,7 @@ def algorithm(problem):
     return (solution, solution_shapes, solution_translated_shapes)
 
 
-i = 26
+i = 30
 (solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
 print("Problem" + str(i))
 print("Solution" + get_output(solution))
