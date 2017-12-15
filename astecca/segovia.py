@@ -7,6 +7,7 @@ from shapely import affinity
 import matplotlib.pyplot as plt
 from scipy import optimize
 from viewer import *
+from math import acos
 class Room():
     def __init__(self, shape):
         self.shape = shape
@@ -44,6 +45,8 @@ with open('problems.rfp') as f:
             furnitureList.append(furnitureItem)
         problems.append(Problem(room,furnitureList))
 
+import numpy.linalg as la
+
 def random_points_within(poly, num_points):
     min_x, min_y, max_x, max_y = poly.bounds
     points = []
@@ -61,7 +64,7 @@ def newPlot(room, poly):
     plt.show()
     time.sleep(3)
 
-def insertRandomShape(room, shape):
+def insertRandomShape(room,  shape):
     room_coordinates = list(zip(*room.exterior.xy))
     random_vertex = random.randint(0, len(room_coordinates) - 1)
     room_vertex = room_coordinates[random_vertex]
@@ -146,6 +149,15 @@ def algorithm(problem):
     print("Area coverage: " + str(1 - (updatable_room.area / problem.room.polygon.area)))
     return (solution, solution_shapes, solution_translated_shapes)
 
+
+def get_sorted_shapes(furniture_list):
+    sorted_shapes = []
+    for shape in furniture_list:
+        sorted_shapes.append((shape, shape.total_cost, shape.polygon.area))
+
+    sorted_shapes = sorted(sorted_shapes, key = lambda x:x[1], reverse=True)
+    return sorted_shapes
+
 def get_output(solution):
     output = ""
     for x in solution:
@@ -158,28 +170,77 @@ def get_cost(solution_shapes):
         total_cost = total_cost + shape.total_cost
     return total_cost
 
-i = 30
-(solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
-print("Problem" + str(i))
-print("Solution" + get_output(solution))
-print("Cost: " + str(get_cost(solution_shapes)))
+
+def get_angle(a,b):
+    angle = np.arctan2(b[1], b[0]) - np.arctan2(a[1],a[0])
+    return angle
+
+
+# TODO: vertice number insetead of coordinates
+def autofit_shape(room, shape, room_vertice_index, shape_vertice_index):
+
+    room_vertice_index = room_vertice_index
+    shape_vertice_index = shape_vertice_index
+
+    room_coords = list(zip(*(room.exterior.xy)))
+    shape_coords = list(zip(*(shape.exterior.xy)))
+
+    trans_x, trans_y = room_coords[room_vertice_index]
+
+    new_shape = affinity.translate(shape, trans_x, trans_y)
+    new_shape_coordinates = list(zip(*(new_shape.exterior.xy)))
+
+    shape_vector1 = np.array(new_shape_coordinates[shape_vertice_index+1])-np.array(new_shape_coordinates[shape_vertice_index])
+    room_vector1 = np.array(room_coords[(room_vertice_index+1)])-np.array(room_coords[room_vertice_index])
+
+    angle_to_rotate = get_angle(shape_vector1, room_vector1)
+    new_rotated_shape = affinity.rotate(new_shape, angle_to_rotate, origin=Point(trans_x, trans_y), use_radians=True)
+
+    return (False, room, new_rotated_shape)
+
+
+i = 21
+# (solution, solution_shapes, solution_translated_shapes) = algorithm(problems[i-1])
+# print("Problem" + str(i))
+# print("Solution" + get_output(solution))
+# print("Cost: " + str(get_cost(solution_shapes)))
 
 min_cost = 0
 max_cost = 0
 
-for item in solution_shapes:
-    if int(item.unit_cost) > max_cost:
-        max_cost = int(item.unit_cost)
-    if int(item.unit_cost) < min_cost:
-        min_cost = int(item.unit_cost)
+# for item in solution_shapes:
+#     if int(item.unit_cost) > max_cost:
+#         max_cost = int(item.unit_cost)
+#     if int(item.unit_cost) < min_cost:
+#         min_cost = int(item.unit_cost)
+#
+
+test_shape = get_sorted_shapes(problems[i-1].furniture)
+sorted_shapes = get_sorted_shapes(problems[i-1].furniture)
+print(len(sorted_shapes))
+print(len(problems[i-1].furniture))
+new_test_shape = autofit_shape(problems[i-1].room.polygon, sorted_shapes[30][0].polygon, 13, 0)
 
 draw_room(problems[i-1].room.polygon)
+draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
 
-for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
-    draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
+draw_shape(new_test_shape[2])
+print(new_test_shape[2])
 
-remaining_furniture = list(set(problems[i-1].furniture)-set(solution_shapes))
-print(len(remaining_furniture), len(problems[i-1].furniture ))
-draw_remaining_furniture(problems[i-1].room.polygon, remaining_furniture, "#d35400")
+def get_specific_shape(shape):
+    output = ""
+    for x, y in list(zip(*(shape.exterior.xy)))[:-1]:
+        output = output +  "(" + str(x) + ", " + str(y) + ")" + ", "
+    return output
+
+print(get_specific_shape(new_test_shape[2]))
+d
+#
+# for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
+#     draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
+
+# remaining_furniture = list(set(problems[i-1].furniture)-set(solution_shapes))
+# print(len(remaining_furniture), len(problems[i-1].furniture ))
+# draw_remaining_furniture(problems[i-1].room.polygon, remaining_furniture, "#d35400")
 plt.axis('equal')
 plt.show()

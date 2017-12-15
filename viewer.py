@@ -53,6 +53,12 @@ def draw_room(room):
     plt.fill(x, y, '#7f8c8d', alpha=1)
     #ax.plot(x, y)
 
+def draw_shape(shape):
+    x, y = shape.exterior.xy
+    #ax.fill(x, y, '#7f8c8d', alpha=1)
+    plt.fill(x, y, '#c0392b', alpha=1)
+    #ax.plot(x, y)
+
 
 def draw_furniture(item, intensity, unit_cost, color):
     x, y = item.exterior.xy
