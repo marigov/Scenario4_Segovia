@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 from viewer import *
 from math import acos
+
 class Room():
     def __init__(self, shape):
         self.shape = shape
@@ -19,7 +20,6 @@ class FurnitureItem():
         self.unit_cost = unitcost
         self.polygon = Polygon(np.array(shape, dtype=np.float64))
         self.total_cost = np.float64((np.float64(self.unit_cost) * self.polygon.area))
-        self.sorting = (self.polygon, self.polygon.area)
 
 class Problem():
     def __init__(self, room, furniture):
@@ -215,12 +215,12 @@ sorted_shapes = get_sorted_shapes(problems[i-1].furniture)
 draw_room(problems[i-1].room.polygon)
 
 for item, polygon in list(zip(solution_shapes, solution_translated_shapes)):
-    draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
+     draw_furniture(polygon, (int(item.unit_cost)-min_cost)/(max_cost-min_cost)*0.8+0.2, item.unit_cost, "#1abc9c")
 
 remaining_furniture = list(set(problems[i-1].furniture)-set(solution_shapes))
 
-# Uncomment for just furniture
-# draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
+# Uncomment for just outer furniture
+#draw_remaining_furniture(problems[i-1].room.polygon, problems[i-1].furniture, "#d35400")
 
 draw_remaining_furniture(problems[i-1].room.polygon, remaining_furniture, "#d35400")
 
